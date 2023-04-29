@@ -1,0 +1,111 @@
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        //test1
+        //String value = "1,2"; // 3
+        
+        //test2
+        //String value = "1,2,3,4,5,6,7,8,9"; // 45
+        
+        //test3
+        //String value = "1\n2,3"; // 6
+        
+        //test4
+        //String value = "//;\n1;2"; // 3
+        
+        //test5
+        //String value = "1,-2,-3"; // error: negatives not allowed: -2 -3
+        
+        //test6
+        //String value = "1001,2"; // 2
+        
+        //test7
+        //String value = "//[***]\n1***2***3"; // 6
+        
+        //test8
+        //String value = "//[*][%]\n1*2%3"; // 6
+        
+        //test9
+        String value = "//[foo][bar]\n1foo2bar3foo6"; // 6
+        
+		int resultado = add(value);
+		System.out.println(resultado); 
+		
+    }
+	
+    public static int add(String numeros) {
+		if (numeros.isEmpty()) return 0;
+    	
+    	if (numeros.startsWith("//")) numeros = delimitadoresPropios(numeros);
+    	
+    	numeros = quitarN(numeros); 
+    	//System.out.println(numeros);
+    	
+		String[] valores = numeros.split(","); 
+		
+		int suma = 0;
+		Stack<String> s = new Stack<String>();
+		
+		for (int i=0;i<valores.length;i++) {
+		    if(valores[i] != ""){
+		        if(Integer.valueOf(valores[i]) < 1000 ){
+		          suma = suma + Integer.valueOf(valores[i]); 
+		       }
+		       
+		       if(Integer.valueOf(valores[i]) < 0 ){
+		          s.push(valores[i]);
+		       }
+		    }
+		}
+		
+		if(s.size() > 0){
+		    throw new RuntimeException("error: negatives not allowed:" + s);
+		}
+		return suma;
+	}
+	
+	public static String quitarN(String numeros){
+	    return numeros.replaceAll("\n", ",");
+	}
+	
+	public static String delimitadoresPropios(String numeros){
+	    String regex = "//(.*)\n";
+        Pattern pat = Pattern.compile(regex);
+        Matcher mat = pat.matcher(numeros);
+		
+        if (mat.find()) {
+            String delimitador = mat.group(1);
+            System.out.println(delimitador);
+            if(delimitador.startsWith("[")){
+                numeros = delimitadoresCorchetes(delimitador, numeros);
+            }else{
+                String primero = "//" + mat.group(1) + "\n";
+                numeros = numeros.replaceAll(primero, ",");
+                numeros = numeros.replaceAll(delimitador, ",");
+            }
+        }
+	    return numeros;
+	}
+	
+	public static String delimitadoresCorchetes(String delimitador, String numeros){
+	    //remplazo primera cadena
+	    String primero = "//" + delimitador + "\n";
+	    numeros = numeros.replace(primero, ",");
+	   
+	    //remplazo de limitadores por ,
+	    String regex = "\\[(.*?)\\]"; //expresion regular
+        Pattern pat = Pattern.compile(regex);
+        Matcher mat = pat.matcher(delimitador);
+        while(mat.find())
+        {
+            //System.out.println(mat.group(1));
+            numeros = numeros.replace(mat.group(1), ",");
+        }
+        
+        return numeros;
+	}
+	
+}
